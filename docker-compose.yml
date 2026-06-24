@@ -1,0 +1,22 @@
+services:
+  wc_local:
+    image: warped-citadel-auth:local
+    build:
+      context: ./
+      dockerfile: dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8083:8083"
+  wc_dev:
+    image: warpedcitadel/warped-citadel-auth:dev
+    env_file:
+      - .env
+    ports:
+      - "8083:8083"
+  wc_prod:
+    image: warpedcitadel/warped-citadel-auth:prod
+    env_file:
+      - .env
+    ports:
+      - "8083:8083"
