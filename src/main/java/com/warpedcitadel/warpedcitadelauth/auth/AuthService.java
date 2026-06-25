@@ -71,7 +71,8 @@ public class AuthService {
                 return new UserReferenceDto(dbUser.getUuid());
             }
         }
-        throw new UsernameNotFoundException("Invalid user name or password");
+
+        throw new UsernameNotFoundException("Invalid username or password");
     }
 
 
@@ -127,7 +128,7 @@ public class AuthService {
 
     public void accountVerification(VerificationTokenDto emailToken) throws RuntimeException {
 
-        if (!isValidUuid(emailToken.token())) {
+        if (!isValidUUID(emailToken.token())) {
             throw new RuntimeException("Invalid Token format");
         }
 
@@ -221,7 +222,7 @@ public class AuthService {
     }
 
 
-    private static boolean isValidUuid(String uuid) {
+    private static boolean isValidUUID(String uuid) {
         if (uuid == null) {
             return false;
         }

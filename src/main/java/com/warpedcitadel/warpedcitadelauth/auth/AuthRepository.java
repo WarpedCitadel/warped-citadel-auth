@@ -69,8 +69,7 @@ public class AuthRepository {
             insertStatement.execute();
 
         } catch (SQLException exception) {
-//            throw new RuntimeException("Failed to create app user");
-            exception.printStackTrace();
+            throw new RuntimeException("Failed to create app user");
         }
     }
 
