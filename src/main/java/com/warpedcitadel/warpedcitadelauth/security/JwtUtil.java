@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -33,19 +33,31 @@ public class JwtUtil {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("classpath:keys/private.pem")
-    private Resource privateKeyResource;
+    @Value("${jwt.audience}")
+    private String audience;
 
-    @Value("classpath:keys/private.pem")
-    private Resource publicKeyResource;
+    private final Resource privateKeyResource;
+    private final Resource publicKeyResource;
 
-    private PrivateKey privateKey;
+    public final RSAPrivateKey privateKey;
+    public final RSAPublicKey publicKey;
 
-    private PublicKey publicKey;
+    public JwtUtil(
+            @Value("classpath:keys/private.pem")
+            Resource privateKeyResource,
+
+            @Value("classpath:keys/public.pem")
+            Resource publicKeyResource) {
+
+        this.privateKeyResource = privateKeyResource;
+        this.publicKeyResource = publicKeyResource;
+
+        this.privateKey = loadPrivateKey();
+        this.publicKey = loadPublicKey();
+    }
 
 
     public String generateToken(String username){
-        privateKey = loadPrivateKey();
 
         return Jwts.builder()
                 .header()
@@ -53,6 +65,7 @@ public class JwtUtil {
                     .and()
                 .subject(username)
                 .issuer(issuer)
+                .audience().add(audience).and()
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpiration))
                 .signWith(privateKey, Jwts.SIG.RS256)
@@ -60,7 +73,7 @@ public class JwtUtil {
     }
 
 
-    public PrivateKey loadPrivateKey() {
+    public RSAPrivateKey loadPrivateKey() {
 
         try {
 
@@ -79,7 +92,7 @@ public class JwtUtil {
             PKCS8EncodedKeySpec spec =
                     new PKCS8EncodedKeySpec(decoded);
 
-            return KeyFactory.getInstance("RSA")
+            return (RSAPrivateKey) KeyFactory.getInstance("RSA")
                     .generatePrivate(spec);
 
         } catch (Exception exception) {
@@ -89,7 +102,7 @@ public class JwtUtil {
     }
 
 
-    public PublicKey loadPublicKey() {
+    public RSAPublicKey loadPublicKey() {
 
         try {
 
@@ -100,7 +113,7 @@ public class JwtUtil {
 
             key = key
                     .replace("-----BEGIN PUBLIC KEY-----", "")
-                    .replace("-----END PRIVATE KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
                     .replaceAll("\\s", "");
 
             byte[] decoded = Base64.getDecoder().decode(key);
@@ -108,7 +121,7 @@ public class JwtUtil {
             X509EncodedKeySpec spec =
                     new X509EncodedKeySpec(decoded);
 
-            return KeyFactory.getInstance("RSA")
+            return (RSAPublicKey) KeyFactory.getInstance("RSA")
                     .generatePublic(spec);
 
         } catch (Exception exception) {
@@ -119,7 +132,6 @@ public class JwtUtil {
 
 
     public String getUserFromToken(String token){
-        publicKey = loadPublicKey();
 
         return Jwts.parser().verifyWith(publicKey).build()
                 .parseSignedClaims(token)
@@ -129,7 +141,6 @@ public class JwtUtil {
 
 
     public boolean validateJwtToken(String token){
-        publicKey = loadPublicKey();
 
         try {
 
@@ -140,6 +151,7 @@ public class JwtUtil {
 
             log.error("JWT validation error: {}", validationException.getMessage());
         }
+
         return false;
     }
 }
