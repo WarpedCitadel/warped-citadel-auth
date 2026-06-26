@@ -101,7 +101,7 @@ public class AuthServiceTest {
                     true
             );
 
-            when(authRepository.authenticateUser(userModel.getUsername())).thenReturn(mockDbUser);
+            when(authRepository.loginAppUser(userModel.getUsername())).thenReturn(mockDbUser);
 
             UserReferenceDto result = authService.loginUser(userDto);
 
@@ -134,7 +134,7 @@ public class AuthServiceTest {
                     false
             );
 
-            when(authRepository.authenticateUser(userModel.getUsername())).thenReturn(mockDbUser);
+            when(authRepository.loginAppUser(userModel.getUsername())).thenReturn(mockDbUser);
 
             Assertions.assertThrowsExactly(BadCredentialsException.class, () -> {
                 authService.loginUser(userDto);

@@ -57,7 +57,7 @@ public class AuthService {
                 userDto.username()
         );
 
-        AuthModel dbUser = authRepository.authenticateUser(userModel.getUsername());
+        AuthModel dbUser = authRepository.loginAppUser(userModel.getUsername());
 
         if (!dbUser.isActive() || !dbUser.isVerified()){
             throw new BadCredentialsException("Unactivated or disabled user");
@@ -68,7 +68,7 @@ public class AuthService {
             if (BCrypt.checkpw(userDto.password(), storedHash)) {
 
                 auditRepository.updateLastActiveDtm(dbUser.getUuid());
-                return new UserReferenceDto(dbUser.getUuid());
+                return new UserReferenceDto(dbUser.getUuid(), dbUser.getUsername());
             }
         }
 

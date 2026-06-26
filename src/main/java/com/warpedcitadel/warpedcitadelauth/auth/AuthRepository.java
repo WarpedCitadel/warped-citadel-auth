@@ -3,6 +3,7 @@ package com.warpedcitadel.warpedcitadelauth.auth;
 import com.warpedcitadel.warpedcitadelauth.auth.dto.VerificationTokenDto;
 import com.warpedcitadel.warpedcitadelauth.auth.model.AuthModel;
 import com.warpedcitadel.warpedcitadelauth.auth.model.EmailVerificationModel;
+import com.warpedcitadel.warpedcitadelauth.auth.model.UserDetailsModel;
 import com.warpedcitadel.warpedcitadelauth.auth.model.UserModel;
 import com.warpedcitadel.warpedcitadelauth.util.SQLFileReader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ public class AuthRepository {
     SQLFileReader loadSQL = new SQLFileReader();
 
 
-    public AuthModel authenticateUser(String username) {
+    public AuthModel loginAppUser(String username) {
 
         String selectSql = loadSQL.loadSQL("/auth/select--get_app_user_details.sql");
 
@@ -35,6 +36,7 @@ public class AuthRepository {
             ResultSet resultSet = selectStatement.executeQuery();
 
             if (resultSet.next()) {
+
                 AuthModel dbUser = new AuthModel(
                         resultSet.getString("user_uuid"),
                         resultSet.getString("username"),
@@ -43,12 +45,16 @@ public class AuthRepository {
                         resultSet.getBoolean("isactive"),
                         resultSet.getBoolean("isverified")
                 );
+
                 return dbUser;
+
             } else {
+
                 throw new IllegalArgumentException("Invalid username or password");
             }
         } catch (SQLException exception) {
-            throw new RuntimeException("Failed to authenticate user");
+
+            throw new RuntimeException("Failed to login user");
         }
     }
 
@@ -160,6 +166,36 @@ public class AuthRepository {
 
         } catch (SQLException exception) {
             throw new RuntimeException("Failed to create user token");
+        }
+    }
+
+
+    public UserDetailsModel authenticateUser(String username) {
+
+        String selectSql = loadSQL.loadSQL("/auth/select--authenticate_app_user.sql");
+
+        try (Connection connection = database.getConnection();
+             PreparedStatement selectStatement = connection.prepareStatement(selectSql)) {
+
+            selectStatement.setString(1, username);
+            ResultSet resultSet = selectStatement.executeQuery();
+
+            if (resultSet.next()) {
+                UserDetailsModel user = new UserDetailsModel(
+                        resultSet.getString("user_uuid"),
+                        resultSet.getString("username"),
+                        resultSet.getString("role_type")
+                );
+
+                return user;
+
+            } else {
+
+                throw new IllegalArgumentException("database retrieval error");
+            }
+        } catch (SQLException exception) {
+
+            throw new RuntimeException("Failed to authenticate user");
         }
     }
 }

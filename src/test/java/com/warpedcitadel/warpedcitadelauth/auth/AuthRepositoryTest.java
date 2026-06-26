@@ -99,7 +99,7 @@ public class AuthRepositoryTest {
         when(resultSet.getString("role_type"))
                 .thenReturn("user");
 
-        AuthModel mockDbUser = authRepository.authenticateUser(userModel.getUsername());
+        AuthModel mockDbUser = authRepository.loginAppUser(userModel.getUsername());
 
         verify(preparedStatement).setString(1, userModel.getUsername());
         verify(preparedStatement).executeQuery();

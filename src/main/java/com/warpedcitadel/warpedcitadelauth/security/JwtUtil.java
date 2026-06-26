@@ -1,6 +1,9 @@
 package com.warpedcitadel.warpedcitadelauth.security;
 
 
+import com.warpedcitadel.warpedcitadelauth.auth.dto.UserReferenceDto;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,17 +60,21 @@ public class JwtUtil {
     }
 
 
-    public String generateToken(String username){
+    public String generateToken(UserReferenceDto user) {
+
+        Date now = new Date();
+        Date exp = new Date(System.currentTimeMillis() + jwtExpiration);
 
         return Jwts.builder()
                 .header()
                     .keyId(keyID)
                     .and()
-                .subject(username)
+                .subject(user.username())
+                .claim("userUUID", user.userUUID())
                 .issuer(issuer)
                 .audience().add(audience).and()
-                .issuedAt(new Date())
-                .expiration(new Date((new Date()).getTime() + jwtExpiration))
+                .issuedAt(now)
+                .expiration(exp)
                 .signWith(privateKey, Jwts.SIG.RS256)
                 .compact();
     }
@@ -131,27 +138,23 @@ public class JwtUtil {
     }
 
 
-    public String getUserFromToken(String token){
+    public Claims validateJwtToken(String token){
 
-        return Jwts.parser().verifyWith(publicKey).build()
+        Claims claims = Jwts.parser()
+                .verifyWith(publicKey)
+                .build()
                 .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
+                .getPayload();
 
+        if (!claims.getIssuer().equals(issuer)) {
 
-    public boolean validateJwtToken(String token){
+            throw new JwtException("Invalid issuer");
+        }
+        if (!claims.getAudience().contains(audience)) {
 
-        try {
-
-            Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token);
-            return true;
-
-        } catch (Exception validationException) {
-
-            log.error("JWT validation error: {}", validationException.getMessage());
+             throw new JwtException("Invalid audience");
         }
 
-        return false;
+        return claims;
     }
 }

@@ -39,7 +39,7 @@ public class AuthController {
                 request.getDescription(false).replace("uri=", ""),
                 Instant.now(Clock.systemUTC()));
 
-        String jwtToken = jwtUtil.generateToken(user.username());
+        String jwtToken = jwtUtil.generateToken(userDto);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + jwtToken);
 

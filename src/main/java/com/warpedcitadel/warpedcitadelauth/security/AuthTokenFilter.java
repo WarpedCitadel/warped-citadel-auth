@@ -1,16 +1,19 @@
 package com.warpedcitadel.warpedcitadelauth.security;
 
 import com.warpedcitadel.warpedcitadelauth.auth.AuthRepository;
-import com.warpedcitadel.warpedcitadelauth.auth.model.AuthModel;
+import com.warpedcitadel.warpedcitadelauth.auth.dto.UserReferenceDto;
+import com.warpedcitadel.warpedcitadelauth.auth.model.UserDetailsModel;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,6 +23,7 @@ import java.util.List;
 public class AuthTokenFilter extends OncePerRequestFilter {
 
     private static final String BEARER_ = "Bearer ";
+    private static final Logger log = LogManager.getLogger(AuthTokenFilter.class);
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -33,29 +37,35 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, java.io.IOException {
-        try {
-            String jwtToken = parseJwt(request);
-            if (jwtToken != null && jwtUtil.validateJwtToken(jwtToken)){
-                final String username = jwtUtil.getUserFromToken(jwtToken);
 
-                final AuthModel userDetails
-                        = authRepository.authenticateUser(username);
-                UsernamePasswordAuthenticationToken authenticationToken =
+        try {
+
+            String jwtToken = parseJwt(request);
+            Claims claims = jwtUtil.validateJwtToken(jwtToken);
+
+                UserReferenceDto userDetails = new UserReferenceDto(
+                        claims.get("userUUID", String.class),
+                        claims.getSubject()
+                );
+
+                UserDetailsModel userDetailsModel = authRepository.authenticateUser(userDetails.username());
+
+                UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                        null,
+                                userDetailsModel.getUsername(),
+                                null,
                                 List.of(
-                                        new SimpleGrantedAuthority(
-                                                "ROLE_" + userDetails.getRole()
-                                        )));
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource()
-                        .buildDetails(request));
+                                  new SimpleGrantedAuthority(
+                                         "ROLE_" + userDetailsModel.getRole()
+                                  )));
+
                 SecurityContextHolder.getContext()
-                        .setAuthentication(authenticationToken);
-            }
+                        .setAuthentication(authentication);
         } catch (Exception exception) {
+
             logger.error("Cannot set user authentication: {}", exception);
         }
+
         filterChain.doFilter(request, response);
     }
 
@@ -63,8 +73,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String headerAuth = request.getHeader("Authorization");
         if (headerAuth != null && headerAuth.startsWith(BEARER_)) {
             return headerAuth.substring(BEARER_.length());
+        } else {
+
+            throw new IllegalArgumentException("Authentication token cant be null");
         }
-        return null;
     }
 }
-
