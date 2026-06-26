@@ -1,5 +1,5 @@
 LOCAL_APP_IP	?=localhost
-LOCAL_APP_PORT	?=8080
+LOCAL_APP_PORT	?=8083
 
 IMAGE_NAME =warped-citadel-auth
 CONTAINER_NAME =warped-citadel-auth
@@ -44,14 +44,14 @@ deploy_local:
 	@echo Deploying LOCAL $(CONTAINER_NAME) at $(localappip):$(localappport). Are you sure? [Y/n]
 	@read line; if [ ! $$line = "Y" ] && [ ! $$line = "y" ]; then echo Aborting...; exit 1; fi
 
-	@echo "Building image $(IMAGE_NAME)/local..."
-	docker build -t $(IMAGE_NAME)/local .
+	@echo "Building image $(IMAGE_NAME):local..."
+	docker build -t $(IMAGE_NAME):local .
 
 	@echo "Building container $(CONTAINER_NAME)..."
 	docker compose up wc_local --build -d
 
 deploy_dev:
-	@echo Deploying LOCAL $(CONTAINER_NAME) at $(localappip):$(localappport). Are you sure? [Y/n]
+	@echo Deploying DEV $(CONTAINER_NAME) at $(localappip):$(localappport). Are you sure? [Y/n]
 	@read line; if [ ! $$line = "Y" ] && [ ! $$line = "y" ]; then echo Aborting...; exit 1; fi
 
 	@echo pulling warpedcitadel/$(IMAGE_NAME)-dev
@@ -61,7 +61,7 @@ deploy_dev:
 	docker compose up wc_dev -d
 
 deploy_prod:
-	@echo Deploying LOCAL $(CONTAINER_NAME) at $(localappip):$(localappport). Are you sure? [Y/n]
+	@echo Deploying PROD $(CONTAINER_NAME) at $(localappip):$(localappport). Are you sure? [Y/n]
 	@read line; if [ ! $$line = "Y" ] && [ ! $$line = "y" ]; then echo Aborting...; exit 1; fi
 
 	@echo pulling warpedcitadel/$(IMAGE_NAME)-prod
@@ -81,7 +81,7 @@ rip_local:
 	-docker rm $(CONTAINER_NAME)-wc_local-1
 
 	@echo "Removing image $(IMAGE_NAME)/local..."
-	-docker rmi -f $(IMAGE_NAME)/local
+	-docker rmi -f $(IMAGE_NAME):local
 
 rip_dev:
 	@echo Ripping DEV $(CONTAINER_NAME)/dev at $(localappip):$(localappport). Are you sure? [Y/n]
@@ -115,7 +115,7 @@ rip_deploy_local:
 	docker compose down
 
 	@echo "Building image $(IMAGE_NAME)..."
-	docker build -t $(IMAGE_NAME)/local .
+	docker build -t $(IMAGE_NAME):local .
 
 	@echo "Building container warped-citadel-auth..."
 	docker compose up wc_local --build -d
