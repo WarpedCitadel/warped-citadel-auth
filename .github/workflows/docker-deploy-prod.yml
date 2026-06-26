@@ -2,9 +2,9 @@ name: Test and Deploy to PROD
 
 on:
   push:
-    branches: ["master"]
+    branches: ["infra/aws-ecr-integration"]
   pull_request:
-    branches: ["master"]
+    branches: ["infra/aws-ecr-integration"]
 
 jobs:
   test-and-verify:
