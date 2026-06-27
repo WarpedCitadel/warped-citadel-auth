@@ -8,8 +8,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,7 +21,6 @@ import java.util.List;
 public class AuthTokenFilter extends OncePerRequestFilter {
 
     private static final String BEARER_ = "Bearer ";
-    private static final Logger log = LogManager.getLogger(AuthTokenFilter.class);
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -41,7 +38,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         try {
 
             String jwtToken = parseJwt(request);
-            Claims claims = jwtUtil.validateJwtToken(jwtToken);
+
+            if (jwtToken != null) {
+
+                Claims claims = jwtUtil.validateJwtToken(jwtToken);
 
                 UserReferenceDto userDetails = new UserReferenceDto(
                         claims.get("userUUID", String.class),
@@ -55,12 +55,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                                 userDetailsModel.getUsername(),
                                 null,
                                 List.of(
-                                  new SimpleGrantedAuthority(
-                                         "ROLE_" + userDetailsModel.getRole()
-                                  )));
+                                        new SimpleGrantedAuthority(
+                                                "ROLE_" + userDetailsModel.getRole()
+                                        )));
 
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
+            }
         } catch (Exception exception) {
 
             logger.error("Cannot set user authentication: {}", exception);
@@ -73,9 +74,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String headerAuth = request.getHeader("Authorization");
         if (headerAuth != null && headerAuth.startsWith(BEARER_)) {
             return headerAuth.substring(BEARER_.length());
-        } else {
-
-            throw new IllegalArgumentException("Authentication token cant be null");
         }
+
+        return null;
     }
 }

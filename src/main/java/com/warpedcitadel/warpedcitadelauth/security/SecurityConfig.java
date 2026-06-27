@@ -38,7 +38,7 @@ public class SecurityConfig {
                         .exceptionHandling(exception -> exception
                                 .accessDeniedHandler(new CustomAccessDeniedHandler()))
                         .authorizeHttpRequests(auth ->
-                                auth.requestMatchers("/auth/**", "/.well-known/jwks.json").permitAll()
+                                auth.requestMatchers("/auth/**", "/actuator/**", "/.well-known/jwks.json").permitAll()
                                         .requestMatchers("/error").permitAll()
                                         .anyRequest().authenticated()
                         );
