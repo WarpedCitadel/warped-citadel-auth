@@ -65,7 +65,7 @@ public class AuthControllerTest {
 
         when(authService.createAppUser(user)).thenReturn(verificationData);
 
-        mockMvc.perform(post("/auth/signup")
+        mockMvc.perform(post("/api/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
                         .header("x-api-version", "1.0"))
@@ -75,7 +75,7 @@ public class AuthControllerTest {
                         .andExpect(jsonPath("$.status").value(201))
                         .andExpect(jsonPath("$.data.email").value("johnblanche@gmail.com"))
                         .andExpect(jsonPath("$.data.sessionToken").value("32aa8760-2431-43f7-8993-5278dd478032"))
-                        .andExpect(jsonPath("$.instance").value("/auth/signup"))
+                        .andExpect(jsonPath("$.instance").value("/api/auth/signup"))
                         .andExpect(jsonPath("$.timestamp").exists());
     }
 

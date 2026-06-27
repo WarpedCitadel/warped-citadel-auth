@@ -60,13 +60,13 @@ class AuditControllerTest {
 
         when(auditService.getAppUserSessions(validUUID)).thenReturn(userSessions.sessions());
 
-        mockMvc.perform(get("/user/profile/{uuid}/session", validUUID)
+        mockMvc.perform(get("/api/audit/profile/{uuid}/session", validUUID)
                 .header("x-api-version", "1.0"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.title").value("User sessions"))
                 .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.instance").value("/user/profile/019ea371-9498-7cb1-b4b9-4ee3db8dc132/session"))
+                .andExpect(jsonPath("$.instance").value("/api/audit/profile/019ea371-9498-7cb1-b4b9-4ee3db8dc132/session"))
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.data[*]").exists());
     }
