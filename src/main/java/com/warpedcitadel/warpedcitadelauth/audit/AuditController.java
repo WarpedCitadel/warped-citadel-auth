@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/user", version = "1.0")
+@RequestMapping(path = "/api/audit", version = "1.0")
 public class AuditController {
 
     @Autowired

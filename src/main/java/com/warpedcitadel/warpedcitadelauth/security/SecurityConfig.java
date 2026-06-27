@@ -38,10 +38,11 @@ public class SecurityConfig {
                         .exceptionHandling(exception -> exception
                                 .accessDeniedHandler(new CustomAccessDeniedHandler()))
                         .authorizeHttpRequests(auth ->
-                                auth.requestMatchers("/auth/**", "/actuator/**", "/.well-known/jwks.json").permitAll()
+                                auth.requestMatchers("/api/auth/**", "/actuator/**", "/.well-known/jwks.json").permitAll()
                                         .requestMatchers("/error").permitAll()
                                         .anyRequest().authenticated()
                         );
+
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

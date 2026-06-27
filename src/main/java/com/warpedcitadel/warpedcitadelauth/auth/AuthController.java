@@ -19,7 +19,7 @@ import java.time.Instant;
 
 
 @RestController
-@RequestMapping(path = "/auth", version = "1.0")
+@RequestMapping(path = "/api/auth", version = "1.0")
 public class AuthController {
 
     @Autowired
